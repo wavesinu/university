@@ -1,3 +1,6 @@
 
 3G_1S/System Programming/tolower
 3G_1S/System Programming/toupper
+*.xml
+*.iml
+.vscode/settings.json
