@@ -17,7 +17,7 @@ main:
 
     # Load the address of the "double" function into a1 (hint: check out "la" on the green sheet)
     ### 1. YOUR CODE HERE ###
-    la a1, double
+    la a1, Double
 
 
     # Issue the call to map
@@ -34,10 +34,11 @@ main:
 
     # Load function arguments
     add a0, s0, x0 # Loads the address of the first node into a0
-
+    
     # Load the address of the "decrement" function into a1 (should be very similar to before)
     ### 2. YOUR CODE HERE ###
     la a1, decrement
+
 
     # Issue the call to map
     jal ra, map
@@ -53,11 +54,7 @@ main:
 map:
     # Prologue: Make space on the stack and back-up registers
     ### 3. YOUR CODE HERE ###
-    addi sp, sp, -16 # reserve space for 4 registers
-	sw ra, 0(sp)
-	sw s0, 4(sp)
-	sw s1, 8(sp)
-	sw s2, 12(sp)
+    addi sp, sp, -16
 
     beq a0, x0, done # If we were given a null pointer (address 0), we're done.
 
@@ -69,54 +66,48 @@ map:
 
     # Load the value of the current node into a0
     ### 4. YOUR CODE HERE ###
-	lw a0, 0(s0)
+    lw a0, 0(s0)
+
 
     # Call the function in question on that value. DO NOT use a label (be prepared to answer why).
     # Hint: Where do we keep track of the function to call? Recall the parameters of "map".
     ### 5. YOUR CODE HERE ###
-	jalr s1 # call function using jalr with address in s1
+    jalr t0, s1, 0
 
 
     # Store the returned value back into the node
     # Where can you assume the returned value is?
     ### 6. YOUR CODE HERE ###
-	sw a0, 0(s0)
+    sw t0, 0(s0)
 
 
     # Load the address of the next node into a0
     # The address of the next node is an attribute of the current node.
     # Think about how structs are organized in memory.
     ### 7. YOUR CODE HERE ###
-	lw a0, 4(s0)
+    lw a0, 4(s0)
 
     # Put the address of the function back into a1 to prepare for the recursion
     ### 8. YOUR CODE HERE ###
-	mv a1, s1
-
+    mv a1, s1
 
     # Recurse
     ### 9. YOUR CODE HERE ###
-	jal ra, map
+    jal ra, map
 
 done:
     # Epilogue: Restore register values and free space from the stack
     ### 10. YOUR CODE HERE ###
-	lw s2, 12(sp)
-	lw s1, 8(sp)
-	lw s0, 4(sp)
-	lw ra, 0(sp)
-	addi sp, sp, 16 # free space for 4 registers
+    addi sp, sp, 16
 
     jr ra # Return to caller
 
 # === Definition of the "double" function ===
-double:
-	# hint. Use t0 and a0
+Double:
+	# hint. Use t0 and a0 
 	### 11. YOUR CODE HERE ###
-    add t0, a0, x0   # copy the argument to t0
-    sll a0, t0, 1    # multiply the argument by 2
-    jr ra
-	jr ra
+    slli t0, a0, 1
+	jr ra 
 
 # === Definition of the "decrement" function ===
 decrement:
