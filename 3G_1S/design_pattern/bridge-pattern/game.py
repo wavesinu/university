@@ -2,17 +2,16 @@ import pygame
 import MyVector as mv  # vector 클래스
 
 rgb = {
-    'BLACK': (0, 0, 0),
-    'WHITE': (255, 255, 255),
-    'BLUE': (0, 0, 255),
-    'GREEN': (0, 255, 0),
-    'RED': (255, 0, 0),
-    'YELLOW': (255, 255, 0)
+    "BLACK": (0, 0, 0),
+    "WHITE": (255, 255, 255),
+    "BLUE": (0, 0, 255),
+    "GREEN": (0, 255, 0),
+    "RED": (255, 0, 0),
+    "YELLOW": (255, 255, 0),
 }
 
 
 class Actor:
-
     def __init__(self, x, y):
         self.pos = mv.MyVector(x, y)
         self.name = ""
@@ -37,13 +36,11 @@ class Actor:
 
 
 class Hero(Actor):
-
     def set_skill(self, skill):
         self.skill = skill
 
 
 class Enemy(Actor):
-
     def set_skill(self, skill):
         self.skill = skill
 
@@ -54,7 +51,6 @@ class NPC(Actor):
 
 
 class GameFramework:
-
     def __init__(self):
         self.pygame = pygame
         self.screen = 0
@@ -71,7 +67,9 @@ class GameFramework:
     def set_display(self, nX, nY):  # nX, nY = 스크린의 차원
         self.nY = nY
         self.nX = nX
-        self.screen = self.pygame.display.set_mode([self.nX, self.nY])  # 스크린의 크기를 리스트 형태로 인자로 넘겨줌
+        self.screen = self.pygame.display.set_mode(
+            [self.nX, self.nY]
+        )  # 스크린의 크기를 리스트 형태로 인자로 넘겨줌
         self.pygame.display.set_caption("Prince")  # 게임창의 이름
 
     def set_hero(self, hero: Actor):
@@ -109,7 +107,6 @@ class GameFramework:
 
 
 class WhiteGame(GameFramework):
-
     def launch(self):
         print("launch")
         clock = self.pygame.time.Clock()
@@ -156,13 +153,25 @@ class WhiteGame(GameFramework):
                 self.screen.fill(rgb["WHITE"])  # 특성을 살린 부분
 
                 self.print_text(self.hero.name, rgb["RED"], self.hero.pos.vec())
-                self.print_text(self.hero.skill, rgb["GREEN"], (self.hero.pos + mv.MyVector(0, 15)).vec())
+                self.print_text(
+                    self.hero.skill,
+                    rgb["GREEN"],
+                    (self.hero.pos + mv.MyVector(0, 15)).vec(),
+                )
 
                 self.print_text(self.npc.name, rgb["RED"], self.npc.pos.vec())
-                self.print_text(self.npc.quest, rgb["GREEN"], (self.npc.pos + mv.MyVector(0, 15)).vec())
+                self.print_text(
+                    self.npc.quest,
+                    rgb["GREEN"],
+                    (self.npc.pos + mv.MyVector(0, 15)).vec(),
+                )
 
                 self.print_text(self.monster.name, rgb["RED"], self.monster.pos.vec())
-                self.print_text(self.monster.skill, rgb["GREEN"], (self.monster.pos + mv.MyVector(0, 15)).vec())
+                self.print_text(
+                    self.monster.skill,
+                    rgb["GREEN"],
+                    (self.monster.pos + mv.MyVector(0, 15)).vec(),
+                )
 
             self.pygame.display.flip()
 
@@ -170,7 +179,6 @@ class WhiteGame(GameFramework):
 
 
 class BlackGame(GameFramework):
-
     def launch(self):
         print("launch")
         clock = self.pygame.time.Clock()
@@ -217,13 +225,25 @@ class BlackGame(GameFramework):
                 self.screen.fill(rgb["BLACK"])  # 특성을 살린 부분
 
                 self.print_text(self.hero.name, rgb["RED"], self.hero.pos.vec())
-                self.print_text(self.hero.skill, rgb["GREEN"], (self.hero.pos + mv.MyVector(0, 15)).vec())
+                self.print_text(
+                    self.hero.skill,
+                    rgb["GREEN"],
+                    (self.hero.pos + mv.MyVector(0, 15)).vec(),
+                )
 
                 self.print_text(self.npc.name, rgb["RED"], self.npc.pos.vec())
-                self.print_text(self.npc.quest, rgb["GREEN"], (self.npc.pos + mv.MyVector(0, 15)).vec())
+                self.print_text(
+                    self.npc.quest,
+                    rgb["GREEN"],
+                    (self.npc.pos + mv.MyVector(0, 15)).vec(),
+                )
 
                 self.print_text(self.monster.name, rgb["RED"], self.monster.pos.vec())
-                self.print_text(self.monster.skill, rgb["GREEN"], (self.monster.pos + mv.MyVector(0, 15)).vec())
+                self.print_text(
+                    self.monster.skill,
+                    rgb["GREEN"],
+                    (self.monster.pos + mv.MyVector(0, 15)).vec(),
+                )
 
             self.pygame.display.flip()
 
@@ -231,7 +251,6 @@ class BlackGame(GameFramework):
 
 
 class YellowGame(GameFramework):
-
     def launch(self):
         print("launch")
         clock = self.pygame.time.Clock()
@@ -278,13 +297,25 @@ class YellowGame(GameFramework):
                 self.screen.fill(rgb["YELLOW"])  # 특성을 살린 부분
 
                 self.print_text(self.hero.name, rgb["RED"], self.hero.pos.vec())
-                self.print_text(self.hero.skill, rgb["GREEN"], (self.hero.pos + mv.MyVector(0, 15)).vec())
+                self.print_text(
+                    self.hero.skill,
+                    rgb["GREEN"],
+                    (self.hero.pos + mv.MyVector(0, 15)).vec(),
+                )
 
                 self.print_text(self.npc.name, rgb["RED"], self.npc.pos.vec())
-                self.print_text(self.npc.quest, rgb["GREEN"], (self.npc.pos + mv.MyVector(0, 15)).vec())
+                self.print_text(
+                    self.npc.quest,
+                    rgb["GREEN"],
+                    (self.npc.pos + mv.MyVector(0, 15)).vec(),
+                )
 
                 self.print_text(self.monster.name, rgb["RED"], self.monster.pos.vec())
-                self.print_text(self.monster.skill, rgb["GREEN"], (self.monster.pos + mv.MyVector(0, 15)).vec())
+                self.print_text(
+                    self.monster.skill,
+                    rgb["GREEN"],
+                    (self.monster.pos + mv.MyVector(0, 15)).vec(),
+                )
 
             self.pygame.display.flip()
 
@@ -292,8 +323,45 @@ class YellowGame(GameFramework):
 
 
 # TODO
-class FacadePattern:
-    pass
+class GameFacade:
+    def __init__(self, nX, nY):
+        self.framework = GameFramework()
+        self.framework.ready()
+        self.framework.set_display(nX, nY)
+        self.framework.draw_edges()
+
+    def create_hero(self, x, y, name, skill):
+        hero = Hero(x, y)
+        hero.set_name(name)
+        hero.set_skill(skill)
+        self.framework.set_hero(hero)
+
+    def create_enemy(self, x, y, name, skill):
+        enemy = Enemy(x, y)
+        enemy.set_name(name)
+        enemy.set_skill(skill)
+        self.framework.set_monster(enemy)
+
+    def create_npc(self, x, y, name, quest):
+        npc = NPC(x, y)
+        npc.set_name(name)
+        npc.set_quest(quest)
+        self.framework.set_npc(npc)
+
+    def launch_black_game(self):
+        black_game = BlackGame()
+        black_game.framework = self.framework
+        black_game.launch()
+
+    def launch_white_game(self):
+        white_game = WhiteGame()
+        white_game.framework = self.framework
+        white_game.launch()
+
+    def launch_yellow_game(self):
+        yellow_game = YellowGame()
+        yellow_game.framework = self.framework
+        yellow_game.launch()
 
 
 # game = BlackGame()
