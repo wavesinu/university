@@ -48,31 +48,6 @@ void read_accounts(Account accounts[], int *num_account)
     fclose(fp);
 }
 
-// 파일에서 명령 정보를 읽어옴
-void read_operations(Operation operations[], int *num_operation)
-{
-    FILE *fp = fopen("operation.dat", "r");
-    if (fp == NULL)
-    {
-        printf("Failed to open operation.dat\n");
-        exit(1);
-    }
-
-    // 파일에서 각 라인을 읽어와서 구조체 배열에 저장
-    int i = 0;
-    while (fscanf(fp, "%s %c", operations[i].acc_no, &operations[i].optype) != EOF)
-    {
-        if (operations[i].optype == 'w' || operations[i].optype == 'd')
-        {
-            fscanf(fp, "%d", &operations[i].amount);
-        }
-        i++;
-    }
-    *num_operation = i;
-
-    fclose(fp);
-}
-
 // 계좌 정보를 파일에 저장
 void write_accounts(Account accounts[], int num_account)
 {
@@ -172,7 +147,6 @@ int main()
     int num_account, num_operation;
 
     read_accounts(accounts, &num_account);
-    read_operations(operations, &num_operation);
 
     // child process 생성
     pid_t pid[MAX_CHILD];
@@ -187,11 +161,25 @@ int main()
         }
         else if (pid[i] == 0)
         { // child process
-            for (int j = 0; j < num_operation; j++)
+            FILE *fp = fopen("operation.dat", "r");
+            if (fp == NULL)
             {
-                random_sleep();
-                execute_operation(operations[j], accounts, num_account, getpid());
+                printf("Failed to open operation.dat\n");
+                exit(1);
             }
+
+            // 파일에서 각 라인을 읽어와서 명령 수행
+            Operation operation;
+            while (fscanf(fp, "%s %c", operation.acc_no, &operation.optype) != EOF)
+            {
+                if (operation.optype == 'w' || operation.optype == 'd')
+                {
+                    fscanf(fp, "%d", &operation.amount);
+                }
+                execute_operation(operation, accounts, num_account, getpid());
+            }
+            fclose(fp);
+
             exit(0);
         }
     }
