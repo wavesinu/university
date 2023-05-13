@@ -4,11 +4,6 @@
 *.xml
 *.iml
 .vscode/settings.json
-3G_1S/system_programming/toupper
-3G_1S/system_programming/tolower
-3G_1S/system_programming/mypipe
-*.txt
-3G_1S/System Programming/test.txt
-*.txt
-3G_1S/System Programming/test.txt
+
+3G-1S/data-mining/.DS_Store
 *.json
