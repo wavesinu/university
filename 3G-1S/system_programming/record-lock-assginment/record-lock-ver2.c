@@ -53,6 +53,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
     Account account;
+    printf("Final account balances:\n");
     while (read(fd, &account, sizeof(Account)) > 0)
     {
         printf("acc_no: %s balance: %d\n", account.acc_no, account.balance);
@@ -60,6 +61,7 @@ int main(int argc, char *argv[])
     close(fd);
     return 0;
 }
+
 void process_job(pid_t pid, const char *operation_file, const char *account_file)
 {
     srand(time(NULL) ^ (getpid() << 16));
@@ -70,8 +72,16 @@ void process_job(pid_t pid, const char *operation_file, const char *account_file
         exit(1);
     }
     Operation operation;
-    while (fscanf(operation_fp, "%5s %c %d", operation.acc_no, &operation.optype, &operation.amount) != EOF)
+    char line[256];
+    while (fgets(line, sizeof(line), operation_fp) != NULL)
     {
+        operation.amount = 0; // reset amount before each read
+        sscanf(line, "%5s %c", operation.acc_no, &operation.optype);
+
+        if (operation.optype != 'i') // if operation is not inquiry, then read the amount
+        {
+            sscanf(line, "%5s %c %d", operation.acc_no, &operation.optype, &operation.amount);
+        }
         int fd = open(account_file, O_RDWR, 0666);
         if (fd == -1)
         {
@@ -103,6 +113,10 @@ void process_job(pid_t pid, const char *operation_file, const char *account_file
                     fprintf(stderr, "fcntl failed, process: %d, error: %d\n", pid, errno);
                     exit(1);
                 }
+
+                lseek(fd, lock.l_start, SEEK_SET);
+                read(fd, &account, sizeof(Account));
+
                 switch (operation.optype)
                 {
                 case 'w':
@@ -120,12 +134,11 @@ void process_job(pid_t pid, const char *operation_file, const char *account_file
                     fprintf(stderr, "Invalid operation type: %c\n", operation.optype);
                     exit(1);
                 }
-                if (operation.optype != 'i')
-                {
-                    lseek(fd, lock.l_start, SEEK_SET);
-                    write(fd, &account, sizeof(Account));
-                }
+
+                lseek(fd, lock.l_start, SEEK_SET);
+                write(fd, &account, sizeof(Account));
                 lock.l_type = F_UNLCK;
+
                 if (fcntl(fd, F_SETLK, &lock) == -1)
                 {
                     fprintf(stderr, "Unlock failed, process: %d, error: %d\n", pid, errno);
