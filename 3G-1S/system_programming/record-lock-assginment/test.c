@@ -25,6 +25,8 @@ void handle_operation(char *acc_no, char op, int amount)
     {
         if (strcmp(acc.acc_no, acc_no) == 0)
         {
+            found = 1;
+            
             lock.l_type = F_WRLCK;
             lock.l_whence = SEEK_SET;
             lock.l_start = lseek(fd, -sizeof(Account), SEEK_CUR);
