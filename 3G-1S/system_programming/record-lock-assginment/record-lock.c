@@ -21,31 +21,46 @@ typedef struct
     int amount;
 } Operation;
 
-void process_job(int process_id, const char *operation_file, const char *account_file);
+void process_job(char *acc_no, char op, int amount);
 
 int main(int argc, char *argv[])
 {
-    pid_t pid[10];
-
-    // create 10 child processes
-    for (int i = 0; i < 10; i++)
+    FILE *operation_fp = fopen("operation.dat", "r");
+    if (operation_fp == NULL)
     {
-        pid[i] = fork();
-        if (pid[i] == 0)
-        { // child process
-            process_job(i, "operation.dat", "account.dat");
-        }
-        else if (pid[i] < 0)
-        {
-            perror("Failed to fork");
-            exit(1);
-        }
+        perror("Failed to open operation file");
+        return 1;
     }
 
-    // wait for all child processes to finish
-    for (int i = 0; i < 10; i++)
+    Operation operation;
+    int process_id = 0;
+
+    // create child processes and assign unique process IDs
+    while (fscanf(operation_fp, "%s %c %d", operation.acc_no, &operation.optype, &operation.amount) != EOF)
     {
-        waitpid(pid[i], NULL, 0);
+        pid_t pid = fork();
+        if (pid == 0)
+        {
+            process_job(operation.acc_no, operation.optype, operation.amount);
+            exit(0);
+        }
+        else if (pid < 0)
+        {
+            perror("Failed to fork");
+            return 1;
+        }
+
+        // Assign unique process ID
+        printf("Child process created with PID: %d\n", pid);
+        process_id++;
+    }
+
+    fclose(operation_fp);
+
+    // wait for all child processes to finish
+    for (int i = 0; i < process_id; i++)
+    {
+        wait(NULL);
     }
 
     // print all account balances
@@ -53,7 +68,7 @@ int main(int argc, char *argv[])
     if (fd == -1)
     {
         perror("Failed to open account file");
-        exit(1);
+        return 1;
     }
 
     Account account;
@@ -67,100 +82,93 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void process_job(int process_id, const char *operation_file, const char *account_file)
+void process_job(char *acc_no, char op, int amount)
 {
-    srand(time(NULL) ^ (getpid() << 16));
-    FILE *operation_fp = fopen(operation_file, "r");
-    if (operation_fp == NULL)
+    int fd = open("account.dat", O_RDWR);
+    if (fd == -1)
     {
-        perror("Failed to open operation file");
+        perror("Failed to open account file");
         exit(1);
     }
 
-    Operation operation;
-    while (fscanf(operation_fp, "%s %c %d", operation.acc_no, &operation.optype, &operation.amount) != EOF)
+    struct flock lock;
+    Account acc;
+    int found = 0;
+
+    while (read(fd, &acc, sizeof(Account)) > 0)
     {
-        int fd = open(account_file, O_RDWR, 0666);
-        if (fd == -1)
+        if (strcmp(acc.acc_no, acc_no) == 0)
         {
-            perror("Failed to open account file");
-            exit(1);
-        }
+            found = 1;
+            lock.l_start = lseek(fd, 0, SEEK_CUR) - sizeof(Account);
 
-        Account account;
-        struct flock lock;
-        lock.l_whence = SEEK_SET;
-        lock.l_len = sizeof(Account);
-        int found = 0;
-
-        while (read(fd, &account, sizeof(Account)) > 0)
-        {
-            if (strcmp(account.acc_no, operation.acc_no) == 0)
+            if (op == 'i')
             {
-                found = 1;
-                lock.l_start = lseek(fd, 0, SEEK_CUR) - sizeof(Account);
-
-                // Set the lock type based on operation type
-                if (operation.optype == 'i')
-                {
-                    lock.l_type = F_RDLCK; // Read lock for inquiry
-                }
-                else
-                {
-                    lock.l_type = F_WRLCK; // Write lock for withdrawal and deposit
-                }
-
-                if (fcntl(fd, F_SETLKW, &lock) == -1)
-                {
-                    fprintf(stderr, "fcntl failed, process: %d, error: %d\n", process_id, errno);
-                    exit(1);
-                }
-
-                switch (operation.optype)
-                {
-                case 'w':
-                    account.balance -= operation.amount;
-                    printf("pid: %d\tacc_no: %s\twithdraw: %d\tbalance: %d\n", process_id, account.acc_no, operation.amount, account.balance);
-                    break;
-                case 'd':
-                    account.balance += operation.amount;
-                    printf("pid: %d\tacc_no: %s\tdeposit: %d\tbalance: %d\n", process_id, account.acc_no, operation.amount, account.balance);
-                    break;
-                case 'i':
-                    printf("pid: %d\tacc_no: %s\tinquiry\t\tbalance: %d\n", process_id, account.acc_no, account.balance);
-                    break;
-                default:
-                    fprintf(stderr, "Invalid operation type: %c\n", operation.optype);
-                    exit(1);
-                }
-
-                if (operation.optype != 'i')
-                {
-                    lseek(fd, lock.l_start, SEEK_SET);
-                    write(fd, &account, sizeof(Account));
-                }
-
-                lock.l_type = F_UNLCK;
-                if (fcntl(fd, F_SETLK, &lock) == -1)
-                {
-                    fprintf(stderr, "Unlock failed, process: %d, error: %d\n", process_id, errno);
-                    exit(1);
-                }
-
-                break;
+                lock.l_type = F_RDLCK;
             }
-        }
+            else
+            {
+                lock.l_type = F_WRLCK;
+            }
 
-        if (!found)
-        {
-            printf("pid: %d\tacc_no: %s\tacc_no %s 계좌 없음\n", process_id, operation.acc_no, operation.acc_no);
-        }
-        usleep(rand() % 1000001);
+            if (fcntl(fd, F_SETLKW, &lock) == -1)
+            {
+                perror("fcntl failed");
+                exit(1);
+            }
 
-        close(fd);
+            switch (op)
+            {
+            case 'w':
+                acc.balance -= amount;
+                break;
+            case 'd':
+                acc.balance += amount;
+                break;
+            case 'i':
+                break;
+            default:
+                fprintf(stderr, "Invalid operation type: %c\n", op);
+                exit(1);
+            }
+
+            if (op != 'i')
+            {
+                lseek(fd, lock.l_start, SEEK_SET);
+                write(fd, &acc, sizeof(Account));
+            }
+
+            lock.l_type = F_UNLCK;
+            if (fcntl(fd, F_SETLK, &lock) == -1)
+            {
+                perror("Unlock failed");
+                exit(1);
+            }
+
+            break;
+        }
     }
 
-    fclose(operation_fp);
+    if (!found)
+    {
+        pid_t pid = getpid();
+        switch (op)
+        {
+        case 'w':
+            printf("pid: %d\tacc_no: %s\twithdraw: %d\tacc_no %s 계좌 없음\n", pid, acc_no, amount, acc_no);
+            break;
+        case 'd':
+            printf("pid: %d\tacc_no: %s\tdeposit: %d\tacc_no %s 계좌 없음\n", pid, acc_no, amount, acc_no);
+            break;
+        case 'i':
+            printf("pid: %d\tacc_no: %s\tinquiry\t\tacc_no %s 계좌 없음\n", pid, acc_no, acc_no);
+            break;
+        default:
+            fprintf(stderr, "Invalid operation type: %c\n", op);
+            exit(1);
+        }
+    }
+    usleep(rand() % 1000000);
 
-    exit(0);
+    close(fd);
 }
