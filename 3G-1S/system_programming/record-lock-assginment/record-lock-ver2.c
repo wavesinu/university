@@ -1,3 +1,9 @@
+/*
+학과: 컴퓨터공학부
+학번: 202103316
+이름: 조이수
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -26,12 +32,11 @@ void process_job(pid_t pid, const char *operation_file, const char *account_file
 int main(int argc, char *argv[])
 {
     pid_t pid[10];
-    // create 10 child processes
     for (int i = 0; i < 10; i++)
     {
         pid[i] = fork();
         if (pid[i] == 0)
-        { // child process
+        {
             process_job(getpid(), "operation.dat", "account.dat");
         }
         else if (pid[i] < 0)
@@ -40,12 +45,10 @@ int main(int argc, char *argv[])
             exit(1);
         }
     }
-    // wait for all child processes to finish
     for (int i = 0; i < 10; i++)
     {
         waitpid(pid[i], NULL, 0);
     }
-    // print all account balances
     int fd = open("account.dat", O_RDONLY);
     if (fd == -1)
     {
@@ -53,11 +56,25 @@ int main(int argc, char *argv[])
         exit(1);
     }
     Account account;
-    printf("Final account balances:\n");
-    while (read(fd, &account, sizeof(Account)) > 0)
+
+    ssize_t size;
+    while ((size = read(fd, &account, sizeof(Account))) > 0)
     {
-        printf("acc_no: %s balance: %d\n", account.acc_no, account.balance);
+        if (size < sizeof(Account))
+        {
+            break;
+        }
+        if (account.acc_no[0] != '\0')
+        {
+            printf("acc_no: %s\tbalance: %d\n", account.acc_no, account.balance);
+        }
     }
+    if (size == -1)
+    {
+        perror("Failed to read account file");
+        exit(1);
+    }
+
     close(fd);
     return 0;
 }
@@ -99,14 +116,13 @@ void process_job(pid_t pid, const char *operation_file, const char *account_file
             {
                 found = 1;
                 lock.l_start = lseek(fd, 0, SEEK_CUR) - sizeof(Account);
-                // Set the lock type based on operation type
                 if (operation.optype == 'i')
                 {
-                    lock.l_type = F_RDLCK; // Read lock for inquiry
+                    lock.l_type = F_RDLCK;
                 }
                 else
                 {
-                    lock.l_type = F_WRLCK; // Write lock for withdrawal and deposit
+                    lock.l_type = F_WRLCK;
                 }
                 if (fcntl(fd, F_SETLKW, &lock) == -1)
                 {
@@ -149,7 +165,24 @@ void process_job(pid_t pid, const char *operation_file, const char *account_file
         }
         if (!found)
         {
-            printf("pid: %d\tacc_no: %s\tacc_no %s 계좌 없음\n", pid, operation.acc_no, operation.acc_no);
+            printf("pid: %d\tacc_no: %s\t", pid, operation.acc_no);
+            switch (operation.optype)
+            {
+            case 'w':
+                printf("withdraw: %d\t", operation.amount);
+                break;
+            case 'd':
+                printf("deposit: %d\t", operation.amount);
+                break;
+            case 'i':
+                printf("inquiry\t\t");
+                break;
+
+            default:
+                fprintf(stderr, "Invalid operation type: %c\n", operation.optype);
+                exit(1);
+            }
+            printf("acc_no %s 계좌 없음\n", operation.acc_no);
         }
         usleep(rand() % 1000001);
         close(fd);
