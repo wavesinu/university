@@ -5,5 +5,9 @@
         "wait.h": "c",
         "stat.h": "c",
         "types.h": "c"
+    },
+    "sonarlint.connectedMode.project": {
+        "connectionId": "wavesinu",
+        "projectKey": "wavesinu_university"
     }
 }
