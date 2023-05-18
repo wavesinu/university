@@ -93,10 +93,10 @@ void process_job(pid_t pid, const char *operation_file, const char *account_file
     char line[256];
     while (fgets(line, sizeof(line), operation_fp) != NULL)
     {
-        operation.amount = 0; // reset amount before each read
+        operation.amount = 0;
         sscanf(line, "%5s %c", operation.acc_no, &operation.optype);
 
-        if (operation.optype != 'i') // if operation is not inquiry, then read the amount
+        if (operation.optype != 'i')
         {
             sscanf(line, "%5s %c %d", operation.acc_no, &operation.optype, &operation.amount);
         }
