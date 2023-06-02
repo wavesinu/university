@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     }
 
     int client_number = atoi(argv[1]);
+
     if (client_number == 1)
     {
         buf.mtype = CLIENT1_MTYPE;
@@ -53,13 +54,13 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    printf("message queue 0x%x 생성\n", (client_number == 1) ? CLIENT1_KEY : CLIENT2_KEY);
+    printf("message queue 0x%08lx 생성\n", (client_number == 1) ? CLIENT1_KEY : CLIENT2_KEY);
 
     while (1)
     {
         printf("Text to send: ");
         fgets(buf.mtext, sizeof(buf.mtext), stdin);
-        buf.mtext[strcspn(buf.mtext, "\n")] = '\0'; // Remove newline character
+        buf.mtext[strcspn(buf.mtext, "\n")] = '\0';
 
         msgsnd(server_id, &buf, sizeof(buf.mtext), 0);
         printf("send to client%d: %s\n", (client_number == 1) ? 2 : 1, buf.mtext);
