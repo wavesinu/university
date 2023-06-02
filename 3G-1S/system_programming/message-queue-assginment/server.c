@@ -22,6 +22,8 @@ int main()
     int server_id, client1_id, client2_id;
     struct msgbuf buf;
 
+    int quit_cnt = 0;
+
     server_id = msgget(SERVER_KEY, 0666 | IPC_CREAT);
     client1_id = msgget(CLIENT1_KEY, 0666 | IPC_CREAT);
     client2_id = msgget(CLIENT2_KEY, 0666 | IPC_CREAT);
@@ -32,9 +34,9 @@ int main()
         exit(EXIT_FAILURE);
     }
 
-    printf("message queue 0x%x created\n", SERVER_KEY);
+    printf("message queue 0x%08lx 생성\n", SERVER_KEY);
 
-    while (1)
+    while (quit_cnt < 2)
     {
         msgrcv(server_id, &buf, sizeof(buf.mtext), 0, 0);
 
@@ -53,7 +55,7 @@ int main()
 
         if (strcmp(buf.mtext, "quit") == 0)
         {
-            break;
+            quit_cnt++;
         }
     }
 
