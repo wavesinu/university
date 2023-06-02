@@ -47,14 +47,16 @@ int main(int argc, char *argv[])
 
     server_id = msgget(SERVER_KEY, 0666 | IPC_CREAT);
 
-    if (client_id == -1 || server_id == -1) {
+    if (client_id == -1 || server_id == -1)
+    {
         perror("msgget failed");
         exit(EXIT_FAILURE);
     }
 
-    printf("message queue 0x%x created\n", (client_number == 1) ? CLIENT1_KEY : CLIENT2_KEY);
+    printf("message queue 0x%x 생성\n", (client_number == 1) ? CLIENT1_KEY : CLIENT2_KEY);
 
-    while (1) {
+    while (1)
+    {
         printf("Text to send: ");
         fgets(buf.mtext, sizeof(buf.mtext), stdin);
         buf.mtext[strcspn(buf.mtext, "\n")] = '\0'; // Remove newline character
@@ -67,6 +69,7 @@ int main(int argc, char *argv[])
 
         if (strcmp(buf.mtext, "quit") == 0)
         {
+            msgsnd(server_id, &buf, sizeof(buf.mtext), 0);
             msgctl(client_id, IPC_RMID, NULL);
             printf("client message queue removed\n");
             break;
