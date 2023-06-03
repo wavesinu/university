@@ -1,81 +1,71 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/ipc.h>
 #include <sys/msg.h>
 
 #define SERVER_KEY 0x2021033161
 #define CLIENT1_KEY 0x2021033162
 #define CLIENT2_KEY 0x2021033163
-
 #define CLIENT1_MTYPE 100
 #define CLIENT2_MTYPE 200
+#define MAX_TEXT_SIZE 100
 
-struct msgbuf
-{
+struct message {
     long mtype;
-    char mtext[200];
+    char mtext[MAX_TEXT_SIZE];
 };
 
-int main(int argc, char *argv[])
-{
-    int client_id, server_id;
-    struct msgbuf buf;
-
-    if (argc != 2)
-    {
-        fprintf(stderr, "Usage: %s <client number>\n", argv[0]);
-        exit(EXIT_FAILURE);
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        printf("Usage: client <client_number>\n");
+        exit(1);
     }
-
     int client_number = atoi(argv[1]);
+    key_t my_key = (client_number == 1) ? CLIENT1_KEY : CLIENT2_KEY;
+    long my_mtype = (client_number == 1) ? CLIENT1_MTYPE : CLIENT2_MTYPE;
 
-    if (client_number == 1)
-    {
-        buf.mtype = CLIENT1_MTYPE;
-        client_id = msgget(CLIENT1_KEY, 0666 | IPC_CREAT);
+    int my_msgid = msgget(my_key, IPC_CREAT | 0666);
+    if (my_msgid == -1) {
+        perror("msgget");
+        exit(1);
     }
-    else if (client_number == 2)
-    {
-        buf.mtype = CLIENT2_MTYPE;
-        client_id = msgget(CLIENT2_KEY, 0666 | IPC_CREAT);
-    }
-    else
-    {
-        fprintf(stderr, "Invalid client number\n");
-        exit(EXIT_FAILURE);
-    }
+    printf("Message queue %lx created\n", my_key);
 
-    server_id = msgget(SERVER_KEY, 0666 | IPC_CREAT);
-
-    if (client_id == -1 || server_id == -1)
-    {
-        perror("msgget failed");
-        exit(EXIT_FAILURE);
+    // get the server message queue id
+    int server_msgid = msgget(SERVER_KEY, 0666);
+    if (server_msgid == -1) {
+        perror("msgget");
+        exit(1);
     }
 
-    printf("message queue 0x%08lx 생성\n", (client_number == 1) ? CLIENT1_KEY : CLIENT2_KEY);
+    struct message msgbuf;
+    msgbuf.mtype = my_mtype;
 
-    while (1)
-    {
+    while (1) {
         printf("Text to send: ");
-        fgets(buf.mtext, sizeof(buf.mtext), stdin);
-        buf.mtext[strcspn(buf.mtext, "\n")] = '\0';
+        fgets(msgbuf.mtext, MAX_TEXT_SIZE, stdin);
+        msgbuf.mtext[strcspn(msgbuf.mtext, "\n")] = '\0'; // remove trailing newline
 
-        msgsnd(server_id, &buf, sizeof(buf.mtext), 0);
-        printf("send to client%d: %s\n", (client_number == 1) ? 2 : 1, buf.mtext);
+        int status = msgsnd(server_msgid, &msgbuf, sizeof(struct msg), 0);
+        if (status == -1) {
+            perror("msgsnd");
+            exit(1);
+        }
+        printf("send to client%d : %s\n", (client_number == 1) ? 2 : 1, msgbuf.mtext);
 
-        msgrcv(client_id, &buf, sizeof(buf.mtext), 0, 0);
-        printf("recv from client%d: %s\n", (client_number == 1) ? 2 : 1, buf.mtext);
-
-        if (strcmp(buf.mtext, "quit") == 0)
-        {
-            msgsnd(server_id, &buf, sizeof(buf.mtext), 0);
-            msgctl(client_id, IPC_RMID, NULL);
-            printf("client message queue removed\n");
+        if (msgrcv(my_msgid, &msgbuf, sizeof(struct msg), 0, 0) == -1) {
+            perror("msgrcv");
+            exit(1);
+        }
+        printf("recv from client%d : %s\n", (client_number == 1) ? 2 : 1, msgbuf.mtext);
+        if (strcmp(msgbuf.mtext, "quit") == 0) {
+            if (msgctl(my_msgid, IPC_RMID, NULL) == -1) {
+                perror("msgctl");
+                exit(1);
+            }
+            printf("Client%d message queue removed\n", client_number);
             break;
         }
     }
-
     return 0;
 }
