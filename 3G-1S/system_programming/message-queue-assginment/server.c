@@ -24,7 +24,7 @@ int main()
         perror("msgget");
         exit(1);
     }
-    printf("Message queue %lx created\n", SERVER_KEY);
+    printf("Message queue %lx 생성\n", SERVER_KEY);
 
     struct message msgbuf;
     int quit_count = 0;

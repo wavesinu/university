@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
         perror("msgget");
         exit(1);
     }
-    printf("Message queue %lx created\n", my_key);
+    printf("Message queue %lx 생성\n", my_key);
 
     // get the server message queue id
     int server_msgid = msgget(SERVER_KEY, 0666);
