@@ -1,0 +1,3 @@
+/Users/wavesinu/Documents/University/3G-1S/system_programming/cmake-build-debug/CMakeFiles/system_programming.dir
+/Users/wavesinu/Documents/University/3G-1S/system_programming/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/wavesinu/Documents/University/3G-1S/system_programming/cmake-build-debug/CMakeFiles/rebuild_cache.dir

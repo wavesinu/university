@@ -9,5 +9,8 @@
     "sonarlint.connectedMode.project": {
         "connectionId": "wavesinu",
         "projectKey": "wavesinu_university"
-    }
+    },
+    "cmake.cmakePath": "/opt/homebrew/bin/cmake",
+    "cmake.sourceDirectory": "/Users/wavesinu/Documents/University/3G-1S/system_programming",
+
 }
