@@ -1,16 +1,13 @@
 {
-    "files.associations": {
-        "stdio.h": "c",
-        "stdlib.h": "c",
-        "wait.h": "c",
-        "stat.h": "c",
-        "types.h": "c"
-    },
     "sonarlint.connectedMode.project": {
         "connectionId": "wavesinu",
         "projectKey": "wavesinu_university"
     },
     "cmake.cmakePath": "/opt/homebrew/bin/cmake",
     "cmake.sourceDirectory": "/Users/wavesinu/Documents/University/3G-1S/system_programming",
+    "files.associations": {
+        "string.h": "c",
+        "msg.h": "c"
+    },
 
 }
