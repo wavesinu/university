@@ -3,9 +3,10 @@
 #include <string.h>
 #include <sys/msg.h>
 
-#define SERVER_KEY 0x2021033161
-#define CLIENT1_KEY 0x2021033162
-#define CLIENT2_KEY 0x2021033163
+#define SERVER_KEY 0x21033161
+#define CLIENT1_KEY 0x21033162
+#define CLIENT2_KEY 0x21033163
+
 #define CLIENT1_MTYPE 100
 #define CLIENT2_MTYPE 200
 #define MAX_TEXT_SIZE 100
@@ -24,14 +25,14 @@ int main()
         perror("msgget");
         exit(1);
     }
-    printf("Message queue %lx 생성\n", SERVER_KEY);
+    printf("Message queue %llx 생성\n", SERVER_KEY);
 
     struct message msgbuf;
     int quit_count = 0;
 
     while (1)
     {
-        if (msgrcv(server_msgid, &msgbuf, sizeof(struct msg), 0, 0) == -1)
+        if (msgrcv(server_msgid, &msgbuf, sizeof(struct message), 0, 0) == -1)
         {
             perror("msgrcv");
             exit(1);
@@ -39,8 +40,10 @@ int main()
         if (strcmp(msgbuf.mtext, "quit") == 0)
         {
             quit_count++;
-            if (quit_count == 2)
-                break;
+        }
+        if (quit_count >= 2)
+        {
+            break;
         }
         int target_msgid;
         if (msgbuf.mtype == CLIENT1_MTYPE)
@@ -67,7 +70,7 @@ int main()
             printf("recv from client2 : %s\n", msgbuf.mtext);
             printf("send to client1 : %s\n", msgbuf.mtext);
         }
-        int status = msgsnd(target_msgid, &msgbuf, sizeof(struct msg), 0);
+        int status = msgsnd(target_msgid, &msgbuf, sizeof(struct message), 0);
         if (status == -1)
         {
             perror("msgsnd");
