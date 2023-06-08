@@ -43,13 +43,26 @@ int main()
         }
         if (quit_count >= 2)
         {
+<<<<<<< Updated upstream
             break;
         }
+=======
+            if (msgctl(server_msgid, IPC_RMID, NULL) == -1)
+            {
+                perror("msgctl");
+                exit(1);
+            }
+            printf("Server message queue removed\n");
+            break;
+        }
+
+>>>>>>> Stashed changes
         int target_msgid;
         if (msgbuf.mtype == CLIENT1_MTYPE)
         {
             msgbuf.mtype = CLIENT2_MTYPE;
             target_msgid = msgget(CLIENT2_KEY, 0666);
+<<<<<<< Updated upstream
             if (target_msgid == -1)
             {
                 perror("msgget");
@@ -57,11 +70,14 @@ int main()
             }
             printf("recv from client1 : %s\n", msgbuf.mtext);
             printf("send to client2 : %s\n", msgbuf.mtext);
+=======
+>>>>>>> Stashed changes
         }
         else
         {
             msgbuf.mtype = CLIENT1_MTYPE;
             target_msgid = msgget(CLIENT1_KEY, 0666);
+<<<<<<< Updated upstream
             if (target_msgid == -1)
             {
                 perror("msgget");
@@ -70,17 +86,30 @@ int main()
             printf("recv from client2 : %s\n", msgbuf.mtext);
             printf("send to client1 : %s\n", msgbuf.mtext);
         }
+=======
+        }
+        if (target_msgid == -1)
+        {
+            perror("msgget");
+            exit(1);
+        }
+        printf("recv from client%d : %s\n", msgbuf.mtype == CLIENT1_MTYPE ? 2 : 1, msgbuf.mtext);
+>>>>>>> Stashed changes
         int status = msgsnd(target_msgid, &msgbuf, sizeof(struct message), 0);
         if (status == -1)
         {
             perror("msgsnd");
             exit(1);
         }
+<<<<<<< Updated upstream
 
         if (msgbuf.mtext == CLIENT1_MTYPE)
             msgbuf.mtype = CLIENT2_MTYPE;
         else
             msgbuf.mtype = CLIENT1_MTYPE;
+=======
+        printf("send to client%d : %s\n", msgbuf.mtype == CLIENT1_MTYPE ? 2 : 1, msgbuf.mtext);
+>>>>>>> Stashed changes
     }
     if (msgctl(server_msgid, IPC_RMID, NULL) == -1)
     {
