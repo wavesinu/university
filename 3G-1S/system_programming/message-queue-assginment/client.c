@@ -9,7 +9,7 @@
 
 #define CLIENT1_MTYPE 100
 #define CLIENT2_MTYPE 200
-#define MAX_TEXT_SIZE 100
+#define MAX_TEXT_SIZE 1024
 
 struct message
 {
@@ -34,56 +34,41 @@ int main(int argc, char *argv[])
         perror("msgget");
         exit(1);
     }
-    printf("Message queue %llx 생성\n", my_key);
 
-    // get the server message queue id
-    int server_msgid = msgget(SERVER_KEY, 0666);
+    int server_msgid = msgget(SERVER_KEY, 0);
     if (server_msgid == -1)
     {
         perror("msgget");
         exit(1);
     }
 
-    struct message msgbuf;
-    msgbuf.mtype = my_mtype;
-
+    struct message msg_buffer;
     while (1)
     {
         printf("Text to send: ");
-        fgets(msgbuf.mtext, MAX_TEXT_SIZE, stdin);
-        msgbuf.mtext[strcspn(msgbuf.mtext, "\n")] = '\0'; // remove trailing newline
-
-        int status = msgsnd(server_msgid, &msgbuf, sizeof(struct message), 0);
-        if (status == -1)
+        fgets(msg_buffer.mtext, MAX_TEXT_SIZE, stdin);
+        msg_buffer.mtype = my_mtype;
+        if (msgsnd(server_msgid, &msg_buffer, sizeof(struct message), 0) == -1)
         {
             perror("msgsnd");
             exit(1);
         }
-        printf("send to client%d : %s\n", (client_number == 1) ? 2 : 1, msgbuf.mtext);
-        
-        if (msgrcv(my_msgid, &msgbuf, sizeof(struct message), 0, 0) == -1)
+        if (strcmp(msg_buffer.mtext, "quit\n") == 0)
         {
-            perror("msgrcv");
-            exit(1);
-        }
-        printf("recv from client%d : %s\n", (client_number == 1) ? 2 : 1, msgbuf.mtext);
-        if (strcmp(msgbuf.mtext, "quit") == 0)
-        {
-            strcpy(msgbuf.mtext, "quit");
-            status = msgsnd(server_msgid, &msgbuf, sizeof(struct message), 0);
-            if (status == -1)
-            {
-                perror("msgsnd");
-                exit(1);
-            }
             if (msgctl(my_msgid, IPC_RMID, NULL) == -1)
             {
                 perror("msgctl");
                 exit(1);
             }
-            printf("Client%d message queue removed\n", client_number);
             break;
         }
+        if (msgrcv(my_msgid, &msg_buffer, sizeof(struct message), 0, 0) == -1)
+        {
+            perror("msgrcv");
+            exit(1);
+        }
+        printf("recv from client%d : %s", (client_number == 1) ? 2 : 1, msg_buffer.mtext);
     }
-    return 0;
+
+    exit(0);
 }
