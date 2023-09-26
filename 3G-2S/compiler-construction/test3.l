@@ -8,6 +8,7 @@ void print(){
 if               {print();}
 [a-z][a-z0-9]*   {print();}
 [0-9]+           {print();}
+[a-z0-9]+        {printf("ERROR\n");}   // 
 [   \t\n]        {}
 .       {printf("ERROR\n");}
 %%
