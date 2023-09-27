@@ -9,8 +9,8 @@
 ---
 #### 2023-09-27
 ```c
-#define SYS_getnice 22
-#define SYS_setnice 23
+#define SYS_getnice 24
+#define SYS_setnice 25
 ```
 - `syscall.h` 파일에 `getnice`, `setnice` 함수의 시스템콜 번호 선언
 
@@ -18,7 +18,20 @@
 SYSCALL(getnice)
 SYSCALL(setnice)
 ```
-- `usys.S` 파일에 시스템콜 라이브러리 함수 선언
+- `usys.S` 파일에 시스템 콜 래퍼 함수 선언
 
-
+```c
+...
+extern int sys_getnice(void);
+extern int sys_setnice(void);
+...
+```
+```c
+static int(*syscalls[])(void) = {
+    ...
+    [SYS_getnice] sys_getnice,  
+    [SYS_setnice] sys_setnice,
+};
+```
+- `syscall.c` 파일에 kernel 시스템콜 선언
 
